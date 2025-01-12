@@ -11,14 +11,19 @@ import (
 	"github.com/ferndot/demo-rule-engine/graph/model"
 )
 
-// CreateTodo is the resolver for the createTodo field.
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
+// CreateFlow is the resolver for the createFlow field.
+func (r *mutationResolver) CreateFlow(ctx context.Context, input model.NewFlow) (*model.Flow, error) {
+	panic(fmt.Errorf("not implemented: CreateFlow - createFlow"))
 }
 
-// Todos is the resolver for the todos field.
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: Todos - todos"))
+// Flows is the resolver for the flows field.
+func (r *queryResolver) Flows(ctx context.Context) ([]*model.Flow, error) {
+	panic(fmt.Errorf("not implemented: Flows - flows"))
+}
+
+// GetFlow is the resolver for the getFlow field.
+func (r *queryResolver) GetFlow(ctx context.Context, id string) (*model.Flow, error) {
+	panic(fmt.Errorf("not implemented: GetFlow - getFlow"))
 }
 
 // Mutation returns MutationResolver implementation.

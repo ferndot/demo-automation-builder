@@ -2,25 +2,98 @@
 
 package model
 
+import (
+	"fmt"
+	"io"
+	"strconv"
+)
+
+type StepConfig interface {
+	IsStepConfig()
+}
+
+type APIStepConfig struct {
+	URL     string           `json:"url"`
+	Method  string           `json:"method"`
+	Headers []*RequestHeader `json:"headers"`
+	Body    *string          `json:"body,omitempty"`
+}
+
+func (APIStepConfig) IsStepConfig() {}
+
+type Flow struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	Steps       []*Step `json:"steps"`
+}
+
+type LogicStepConfig struct {
+	Type string `json:"type"`
+}
+
+func (LogicStepConfig) IsStepConfig() {}
+
 type Mutation struct {
 }
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+type NewFlow struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
 }
 
 type Query struct {
 }
 
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
+type RequestHeader struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+type Step struct {
+	ID          string     `json:"id"`
+	Type        StepType   `json:"type"`
+	Description *string    `json:"description,omitempty"`
+	Config      StepConfig `json:"config"`
+}
+
+type StepType string
+
+const (
+	StepTypeLogic StepType = "LOGIC"
+	StepTypeAPI   StepType = "API"
+)
+
+var AllStepType = []StepType{
+	StepTypeLogic,
+	StepTypeAPI,
+}
+
+func (e StepType) IsValid() bool {
+	switch e {
+	case StepTypeLogic, StepTypeAPI:
+		return true
+	}
+	return false
+}
+
+func (e StepType) String() string {
+	return string(e)
+}
+
+func (e *StepType) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = StepType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid StepType", str)
+	}
+	return nil
+}
+
+func (e StepType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

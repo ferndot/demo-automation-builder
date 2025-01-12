@@ -2,27 +2,53 @@
 #
 # https://gqlgen.com/getting-started/
 
-type Todo {
-  id: ID!
-  text: String!
-  done: Boolean!
-  user: User!
-}
-
-type User {
+type Flow {
   id: ID!
   name: String!
+  description: String
+  steps: [Step!]!
+}
+
+enum StepType {
+  LOGIC
+  API
+}
+
+type Step {
+  id: ID!
+  type: StepType!
+  description: String
+  config: StepConfig!
+}
+
+union StepConfig = LogicStepConfig | ApiStepConfig
+
+type LogicStepConfig {
+  type: String!
+}
+
+type ApiStepConfig {
+  url: String!
+  method: String!
+  headers: [RequestHeader!]!
+  body: String
+}
+
+type RequestHeader {
+  key: String!
+  value: String!
 }
 
 type Query {
-  todos: [Todo!]!
+  flows: [Flow!]!
+  getFlow(id: ID!): Flow
 }
 
-input NewTodo {
-  text: String!
-  userId: String!
+input NewFlow {
+  name: String!
+  description: String
 }
 
 type Mutation {
-  createTodo(input: NewTodo!): Todo!
+  createFlow(input: NewFlow!): Flow!
 }
