@@ -1,6 +1,13 @@
 <template>
   <v-card :title="title">
+    <template #prepend>
+      <v-icon
+        icon="mdi-drag"
+        class="drag-handle cursor-grab"
+      />
+    </template>
     <template #append>
+      <slot name="actions" />
       <!-- I would usually implement a delete confirmation prompt. -->
       <v-btn
         icon="mdi-delete"

@@ -1,32 +1,38 @@
 <template>
   <step-card
-    title="Make an API Request"
+    title="API Request"
     @delete="$emit('delete')"
   >
     <v-form>
       <v-text-field
-        v-model="stepConfig.url"
+        v-model="step.description"
+        label="Description"
+      />
+  
+      <v-text-field
+        v-model="config.url"
         label="URL"
-        prepend-inner-icon="mdi-link"
         required
       />
 
       <v-select
-        v-model="stepConfig.method"
+        v-model="config.method"
         :items="supportedMethods"
         label="Method"
         required
       />
 
+      <!--
+      TODO: Add a better field to edit these
       <v-textarea
-        v-model="stepConfig.headers"
+        v-model="config.headers"
         label="Headers"
         rows="3"
-      />
+      /> -->
 
       <!-- It would be much nicer to use a JSON editor component for this -->
       <v-textarea
-        v-model="stepConfig.body"
+        v-model="config.body"
         label="Body"
         rows="5"
       />
@@ -36,18 +42,15 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import type { Step } from '@/stores/flow';
+import type { ApiStepConfig, Step } from '@/stores/flow';
 
 const props = defineProps<{
   step: Step,
 }>()
-defineEmits(['delete']);
+defineEmits(['update', 'delete']);
 
 const supportedMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
-const stepConfig = ref({
-  url: props.step.config.url || '',
-  method: props.step.config.method || 'GET',
-  headers: props.step.config.headers || [],
-  body: props.step.config.body || '',
-});
+
+const step = ref(props.step);
+const config = step.value.config as ApiStepConfig;
 </script>

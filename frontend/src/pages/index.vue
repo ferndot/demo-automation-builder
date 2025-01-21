@@ -15,9 +15,9 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
-import type { Flow } from "@/stores/flow";
+import type { FlowThumbnail } from "@/stores/flow";
 
-const flows = ref<Array<Flow>>([
+const flows = ref<Array<FlowThumbnail>>([
   {
     id: "1",
     name: "Flow 1",

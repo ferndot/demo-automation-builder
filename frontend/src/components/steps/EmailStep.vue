@@ -1,14 +1,37 @@
 <template>
   <step-card
-    title="Send an Email"
+    title="Email"
     @delete="$emit('delete')"
   >
+    <template #actions>
+      <!-- Example of custom action offering preview functionality -->
+      <v-btn
+        icon="mdi-eye"
+      />
+    </template>
+  
     <v-form>
       <v-text-field
-        v-model="stepConfig.recipient"
+        v-model="step.description"
+        label="Description"
+      />
+
+      <v-text-field
+        v-model="config.recipient"
         label="Recipient Email"
         type="email"
-        prepend-inner-icon="mdi-email"
+        required
+      />
+
+      <v-text-field
+        v-model="config.subject"
+        label="Subject"
+        required
+      />
+
+      <v-textarea
+        v-model="config.body"
+        label="Body"
         required
       />
     </v-form>
@@ -17,15 +40,14 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import type { Flow, Step } from '@/stores/flow';
+import { type EmailStepConfig, type Flow, type Step } from '@/stores/flow';
 
 const props = defineProps<{
   flow: Flow
   step: Step
 }>()
-defineEmits(['delete']);
+defineEmits(['update', 'delete']);
 
-const stepConfig = ref({
-  recipient: props.step.config.recipient || '',
-});
+const step = ref(props.step);
+const config = step.value.config as EmailStepConfig;
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-app-bar>
       <template #prepend>
         <v-app-bar-nav-icon
@@ -21,7 +21,7 @@
           cols="12"
           md="4"
         >
-          <v-card class="my-4">
+          <v-card>
             <v-card-text>
               <v-form
                 v-model="formsValid"
@@ -41,25 +41,24 @@
         </v-col>
 
         <v-col>
-          <template
-            v-for="step, index in flow.steps"
-            :key="step.id"
+          <VueDraggable
+            v-model="flow.steps"
+            group="steps"
+            handle=".drag-handle"
+            filter=".drag-disabled"
+            :animation="150"
+            class="steps-container h-100"
           >
-            <div 
-              v-if="index % 2 === 1"
-              class="text-center"
-            >
-              <v-icon icon="mdi-arrow-down" />
-            </div>
-
             <component
               :is="typeToComponent[step.type]"
-              class="my-4"
+              v-for="step, index in flow.steps"
+              :key="step.id"
+              class="mb-4"
               :flow="flow"
               :step="step"
               @delete="deleteStep(index)"
             />
-          </template>
+          </VueDraggable>
         </v-col>
       </v-row>
     </v-main>
@@ -70,31 +69,21 @@
   
 <script lang="ts" setup>
 import { type Component, ref } from "vue";
+import { VueDraggable } from 'vue-draggable-plus';
 import { type Flow } from "@/stores/flow";
 import ApiStep from "@/components/steps/ApiStep.vue";
 import EmailStep from "@/components/steps/EmailStep.vue";
 
+// This would be fetched from the backend
 const flow = ref<Flow>({
   id: "2",
   name: "Flow 2",
   description: "This is a sample flow.",
-  steps: [
-    {
-      id: "1",
-      type: "api",
-      description: "This is step 1",
-      config: {}
-    },
-    {
-      id: "2",
-      type: "notifications.email",
-      description: "This is step 2",
-      config: {}
-    },
-  ],
+  steps: [],
 });
 const formsValid = ref(false);
 
+// This mapping could be stored in a constants file
 const typeToComponent: Record<string, Component> = {
   "api": ApiStep,
   "notifications.email": EmailStep,
@@ -104,3 +93,17 @@ const deleteStep = (index: number) => {
   flow.value.steps?.splice(index, 1);
 }
 </script>
+
+<style lang="scss" scoped>
+.steps-container:empty {
+  background-color: rgb(var(--v-theme-surface));
+  border: 2px dashed rgba(var(--v-border-color), var(--v-border-opacity));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &::before {
+    content: "Drag and drop steps here.";
+  }
+}
+</style>
