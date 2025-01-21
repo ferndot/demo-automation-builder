@@ -7,10 +7,14 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ApiStep: typeof import('./components/steps/ApiStep.vue')['default']
     AppFooter: typeof import('./components/AppFooter.vue')['default']
+    EmailStep: typeof import('./components/steps/EmailStep.vue')['default']
     FlowCard: typeof import('./components/FlowCard.vue')['default']
-    HelloWorld: typeof import('./components/HelloWorld.vue')['default']
+    LogicStep: typeof import('./components/steps/LogicStep.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    StepCard: typeof import('./components/StepCard.vue')['default']
+    StepSidebar: typeof import('./components/StepSidebar.vue')['default']
   }
 }

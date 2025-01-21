@@ -5,7 +5,7 @@
 </template>
     
 <script lang="ts" setup>
-import type { Flow } from "../stores/flow";
+import type { Flow } from "@/stores/flow";
 
 const props = defineProps<{
   flow: Flow

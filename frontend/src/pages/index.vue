@@ -15,7 +15,7 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
-import type { Flow } from "../stores/flow";
+import type { Flow } from "@/stores/flow";
 
 const flows = ref<Array<Flow>>([
   {

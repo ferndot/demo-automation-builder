@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 export interface Flow {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   steps?: Step[];
 }
 
@@ -13,6 +13,13 @@ export interface Step {
   type: string;
   description: string;
   config: object;
+}
+
+export interface StepType {
+  title: string;
+  type: string;
+  description: string;
+  icon: string;
 }
 
 export const useAppStore = defineStore('flow', {
