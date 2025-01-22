@@ -14,7 +14,6 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
 import type { FlowThumbnail } from "@/stores/flow";
 
 const flows = ref<Array<FlowThumbnail>>([

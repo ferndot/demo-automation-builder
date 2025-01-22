@@ -8,10 +8,13 @@
     <v-text-field
       v-model="query"
       label="Search available step types"
-      prepend-inner-icon="mdi-magnify"
+      type="search"
+      class="search-box"
+      variant="solo-filled"
+      tile
+      append-inner-icon="mdi-magnify"
       clearable
       hide-details
-      class="search-box"
     />
 
     <VueDraggable
@@ -27,7 +30,7 @@
       <v-card
         v-for="step in filteredSteps"
         :key="step.type"
-        class=" ma-4 cursor-grab"
+        class="step-type-card cursor-grab"
         variant="flat"
         :title="step.title"
         :subtitle="step.description"
@@ -46,58 +49,61 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
 import type { ApiStepConfig, EmailStepConfig, StepType } from '@/stores/flow';
 
-const query = ref('');
+const query = ref(null);
 
 // In an ideal implementation, these step types would be fetched from an API endpoint
 const steps = ref<StepType[]>([
-    {
-        title: 'API Request',
-        type: 'api',
-        description: 'Makes an HTTP request to an API endpoint.',
-        icon: 'mdi-api',
-        baseConfig: <ApiStepConfig>{
-            url: '',
-            method: 'GET',
-            headers: {},
-            body: '',
-        },
+  {
+    title: 'API Request',
+    type: 'api',
+    description: 'Makes an HTTP request to an API endpoint.',
+    icon: 'mdi-api',
+    baseConfig: <ApiStepConfig>{
+      url: '',
+      method: 'GET',
+      headers: {},
+      body: '',
     },
-    {
-        title: 'Email',
-        type: 'notifications.email',
-        description: 'Sends an email notification.',
-        icon: 'mdi-email',
-        baseConfig: <EmailStepConfig>{
-            recipient: '',
-            subject: '',
-            body: '',
-        },
-    }
+  },
+  {
+    title: 'Email',
+    type: 'notifications.email',
+    description: 'Sends an email notification.',
+    icon: 'mdi-email',
+    baseConfig: <EmailStepConfig>{
+      recipient: '',
+      subject: '',
+      body: '',
+    },
+  }
 ])
 
 // Apply search query if provided
 const filteredSteps = computed(() => {
-    return steps.value.filter(step =>
-        step.title.toLowerCase().includes(query.value.toLowerCase())
-    );
+  return steps.value.filter(step =>
+    step.title.toLowerCase().includes((query.value ?? '').toLowerCase())
+  );
 });
 
 const createStep = (element: StepType) => {
-    return {
-        id: null,
-        type: element.type,
-        description: '',
-        config: element.baseConfig,
-    };
+  return {
+    id: null,
+    type: element.type,
+    description: '',
+    config: element.baseConfig,
+  };
 };
 </script>
 
 <style lang="scss" scoped>
+.step-type-card {
+  margin: 16px;
+}
+
 .search-box :deep(.v-input__control) {
-    height: 64px;
+  height: 64px;
 }
 </style>
