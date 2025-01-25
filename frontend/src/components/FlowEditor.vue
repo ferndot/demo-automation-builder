@@ -90,12 +90,12 @@
 </template>
   
 <script lang="ts" setup>
-import isEqual from 'lodash/isequal';
+import { isEqual } from 'lodash';
 import { VueDraggable } from 'vue-draggable-plus';
 import type { VForm } from 'vuetify/components';
 import ApiStep from "@/components/steps/ApiStep.vue";
 import EmailStep from "@/components/steps/EmailStep.vue";
-import type { GetFlowQuery, Step, UpsertFlow, UpsertStep } from '@/gql/graphql';
+import type { UpsertFlow, UpsertStep } from '@/gql/graphql';
 
 const props = defineProps<{
   flow: UpsertFlow
