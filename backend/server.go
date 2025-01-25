@@ -17,6 +17,7 @@ import (
 )
 
 const defaultPort = "8080"
+const defaultAllowedOrigins = "http://localhost:*"
 
 func main() {
 	router := chi.NewRouter()
@@ -27,17 +28,23 @@ func main() {
 		port = defaultPort
 	}
 
+	// Default allowed origins to localhost
+	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+	if allowedOrigins == "" {
+		allowedOrigins = defaultAllowedOrigins
+	}
+
 	// Add CORS middleware around every request
 	// See https://github.com/rs/cors for full option listing
 	router.Use(cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:*"},
+		AllowedOrigins:   []string{allowedOrigins},
 		AllowCredentials: true,
 		Debug:            true,
 	}).Handler)
 
 	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 
-	// Handle cross-origin checks in for websocket upgrade requests:
+	// Handle cross-origin checks in websocket upgrade requests:
 	srv.AddTransport(&transport.Websocket{
 		Upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
