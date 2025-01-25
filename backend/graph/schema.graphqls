@@ -1,54 +1,54 @@
-# GraphQL schema example
-#
-# https://gqlgen.com/getting-started/
+scalar UUID
+scalar Map
+scalar Time
 
 type Flow {
-  id: ID!
+  id: UUID!
   name: String!
   description: String
   steps: [Step!]!
+
+  # It is best practice to store creation/update timestamps for auditability
+  createdAt: Time!
+  updatedAt: Time!
 }
 
+input UpsertFlow {
+  id: UUID
+  name: String!
+  description: String
+  steps: [UpsertStep!]!
+}
+
+# Namespaced for readability once the step type list grows
 enum StepType {
-  LOGIC
-  API
+  INTEGRATION__API
+  NOTIFICATION__EMAIL
 }
 
 type Step {
-  id: ID!
   type: StepType!
   description: String
-  config: StepConfig!
+
+  # This is a map to conveniently store a wide variety of configuration options
+  config: Map
 }
 
-union StepConfig = LogicStepConfig | ApiStepConfig
-
-type LogicStepConfig {
-  type: String!
-}
-
-type ApiStepConfig {
-  url: String!
-  method: String!
-  headers: [RequestHeader!]!
-  body: String
-}
-
-type RequestHeader {
-  key: String!
-  value: String!
+input UpsertStep {
+  type: StepType!
+  description: String
+  config: Map
 }
 
 type Query {
-  flows: [Flow!]!
-  getFlow(id: ID!): Flow
-}
+  listFlows: [Flow!]!
+  getFlow(id: UUID!): Flow
 
-input NewFlow {
-  name: String!
-  description: String
+  # TODO: Return step types from backend instead of hardcoding them in the frontend
+  # getStepTypes(): StepType!
 }
 
 type Mutation {
-  createFlow(input: NewFlow!): Flow!
+  upsertFlow(input: UpsertFlow!): Flow!
+  deleteFlow(id: UUID!): UUID!
 }

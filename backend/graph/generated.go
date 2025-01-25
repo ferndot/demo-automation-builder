@@ -11,10 +11,12 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/ferndot/demo-rule-engine/graph/model"
+	"github.com/google/uuid"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -47,52 +49,39 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	ApiStepConfig struct {
-		Body    func(childComplexity int) int
-		Headers func(childComplexity int) int
-		Method  func(childComplexity int) int
-		URL     func(childComplexity int) int
-	}
-
 	Flow struct {
+		CreatedAt   func(childComplexity int) int
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
 		Steps       func(childComplexity int) int
-	}
-
-	LogicStepConfig struct {
-		Type func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
 	}
 
 	Mutation struct {
-		CreateFlow func(childComplexity int, input model.NewFlow) int
+		DeleteFlow func(childComplexity int, id uuid.UUID) int
+		UpsertFlow func(childComplexity int, input model.UpsertFlow) int
 	}
 
 	Query struct {
-		Flows   func(childComplexity int) int
-		GetFlow func(childComplexity int, id string) int
-	}
-
-	RequestHeader struct {
-		Key   func(childComplexity int) int
-		Value func(childComplexity int) int
+		GetFlow   func(childComplexity int, id uuid.UUID) int
+		ListFlows func(childComplexity int) int
 	}
 
 	Step struct {
 		Config      func(childComplexity int) int
 		Description func(childComplexity int) int
-		ID          func(childComplexity int) int
 		Type        func(childComplexity int) int
 	}
 }
 
 type MutationResolver interface {
-	CreateFlow(ctx context.Context, input model.NewFlow) (*model.Flow, error)
+	UpsertFlow(ctx context.Context, input model.UpsertFlow) (*model.Flow, error)
+	DeleteFlow(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
 }
 type QueryResolver interface {
-	Flows(ctx context.Context) ([]*model.Flow, error)
-	GetFlow(ctx context.Context, id string) (*model.Flow, error)
+	ListFlows(ctx context.Context) ([]*model.Flow, error)
+	GetFlow(ctx context.Context, id uuid.UUID) (*model.Flow, error)
 }
 
 type executableSchema struct {
@@ -114,33 +103,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "ApiStepConfig.body":
-		if e.complexity.ApiStepConfig.Body == nil {
+	case "Flow.createdAt":
+		if e.complexity.Flow.CreatedAt == nil {
 			break
 		}
 
-		return e.complexity.ApiStepConfig.Body(childComplexity), true
-
-	case "ApiStepConfig.headers":
-		if e.complexity.ApiStepConfig.Headers == nil {
-			break
-		}
-
-		return e.complexity.ApiStepConfig.Headers(childComplexity), true
-
-	case "ApiStepConfig.method":
-		if e.complexity.ApiStepConfig.Method == nil {
-			break
-		}
-
-		return e.complexity.ApiStepConfig.Method(childComplexity), true
-
-	case "ApiStepConfig.url":
-		if e.complexity.ApiStepConfig.URL == nil {
-			break
-		}
-
-		return e.complexity.ApiStepConfig.URL(childComplexity), true
+		return e.complexity.Flow.CreatedAt(childComplexity), true
 
 	case "Flow.description":
 		if e.complexity.Flow.Description == nil {
@@ -170,31 +138,36 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Flow.Steps(childComplexity), true
 
-	case "LogicStepConfig.type":
-		if e.complexity.LogicStepConfig.Type == nil {
+	case "Flow.updatedAt":
+		if e.complexity.Flow.UpdatedAt == nil {
 			break
 		}
 
-		return e.complexity.LogicStepConfig.Type(childComplexity), true
+		return e.complexity.Flow.UpdatedAt(childComplexity), true
 
-	case "Mutation.createFlow":
-		if e.complexity.Mutation.CreateFlow == nil {
+	case "Mutation.deleteFlow":
+		if e.complexity.Mutation.DeleteFlow == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createFlow_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_deleteFlow_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateFlow(childComplexity, args["input"].(model.NewFlow)), true
+		return e.complexity.Mutation.DeleteFlow(childComplexity, args["id"].(uuid.UUID)), true
 
-	case "Query.flows":
-		if e.complexity.Query.Flows == nil {
+	case "Mutation.upsertFlow":
+		if e.complexity.Mutation.UpsertFlow == nil {
 			break
 		}
 
-		return e.complexity.Query.Flows(childComplexity), true
+		args, err := ec.field_Mutation_upsertFlow_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpsertFlow(childComplexity, args["input"].(model.UpsertFlow)), true
 
 	case "Query.getFlow":
 		if e.complexity.Query.GetFlow == nil {
@@ -206,21 +179,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetFlow(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.GetFlow(childComplexity, args["id"].(uuid.UUID)), true
 
-	case "RequestHeader.key":
-		if e.complexity.RequestHeader.Key == nil {
+	case "Query.listFlows":
+		if e.complexity.Query.ListFlows == nil {
 			break
 		}
 
-		return e.complexity.RequestHeader.Key(childComplexity), true
-
-	case "RequestHeader.value":
-		if e.complexity.RequestHeader.Value == nil {
-			break
-		}
-
-		return e.complexity.RequestHeader.Value(childComplexity), true
+		return e.complexity.Query.ListFlows(childComplexity), true
 
 	case "Step.config":
 		if e.complexity.Step.Config == nil {
@@ -235,13 +201,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Step.Description(childComplexity), true
-
-	case "Step.id":
-		if e.complexity.Step.ID == nil {
-			break
-		}
-
-		return e.complexity.Step.ID(childComplexity), true
 
 	case "Step.type":
 		if e.complexity.Step.Type == nil {
@@ -258,7 +217,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputNewFlow,
+		ec.unmarshalInputUpsertFlow,
+		ec.unmarshalInputUpsertStep,
 	)
 	first := true
 
@@ -375,26 +335,49 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_createFlow_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Mutation_deleteFlow_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := ec.field_Mutation_createFlow_argsInput(ctx, rawArgs)
+	arg0, err := ec.field_Mutation_deleteFlow_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_deleteFlow_argsID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (uuid.UUID, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+	}
+
+	var zeroVal uuid.UUID
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_upsertFlow_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_upsertFlow_argsInput(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
 	args["input"] = arg0
 	return args, nil
 }
-func (ec *executionContext) field_Mutation_createFlow_argsInput(
+func (ec *executionContext) field_Mutation_upsertFlow_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (model.NewFlow, error) {
+) (model.UpsertFlow, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNNewFlow2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐNewFlow(ctx, tmp)
+		return ec.unmarshalNUpsertFlow2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐUpsertFlow(ctx, tmp)
 	}
 
-	var zeroVal model.NewFlow
+	var zeroVal model.UpsertFlow
 	return zeroVal, nil
 }
 
@@ -434,13 +417,13 @@ func (ec *executionContext) field_Query_getFlow_args(ctx context.Context, rawArg
 func (ec *executionContext) field_Query_getFlow_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (string, error) {
+) (uuid.UUID, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 	if tmp, ok := rawArgs["id"]; ok {
-		return ec.unmarshalNID2string(ctx, tmp)
+		return ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
 	}
 
-	var zeroVal string
+	var zeroVal uuid.UUID
 	return zeroVal, nil
 }
 
@@ -498,185 +481,6 @@ func (ec *executionContext) field___Type_fields_argsIncludeDeprecated(
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _ApiStepConfig_url(ctx context.Context, field graphql.CollectedField, obj *model.APIStepConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ApiStepConfig_url(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.URL, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ApiStepConfig_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ApiStepConfig",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ApiStepConfig_method(ctx context.Context, field graphql.CollectedField, obj *model.APIStepConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ApiStepConfig_method(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Method, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ApiStepConfig_method(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ApiStepConfig",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ApiStepConfig_headers(ctx context.Context, field graphql.CollectedField, obj *model.APIStepConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ApiStepConfig_headers(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Headers, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.RequestHeader)
-	fc.Result = res
-	return ec.marshalNRequestHeader2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐRequestHeaderᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ApiStepConfig_headers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ApiStepConfig",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "key":
-				return ec.fieldContext_RequestHeader_key(ctx, field)
-			case "value":
-				return ec.fieldContext_RequestHeader_value(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type RequestHeader", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ApiStepConfig_body(ctx context.Context, field graphql.CollectedField, obj *model.APIStepConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ApiStepConfig_body(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Body, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ApiStepConfig_body(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ApiStepConfig",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Flow_id(ctx context.Context, field graphql.CollectedField, obj *model.Flow) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Flow_id(ctx, field)
 	if err != nil {
@@ -703,9 +507,9 @@ func (ec *executionContext) _Flow_id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Flow_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -715,7 +519,7 @@ func (ec *executionContext) fieldContext_Flow_id(_ context.Context, field graphq
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			return nil, errors.New("field of type UUID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -845,8 +649,6 @@ func (ec *executionContext) fieldContext_Flow_steps(_ context.Context, field gra
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Step_id(ctx, field)
 			case "type":
 				return ec.fieldContext_Step_type(ctx, field)
 			case "description":
@@ -860,8 +662,8 @@ func (ec *executionContext) fieldContext_Flow_steps(_ context.Context, field gra
 	return fc, nil
 }
 
-func (ec *executionContext) _LogicStepConfig_type(ctx context.Context, field graphql.CollectedField, obj *model.LogicStepConfig) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LogicStepConfig_type(ctx, field)
+func (ec *executionContext) _Flow_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.Flow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Flow_createdAt(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -874,7 +676,7 @@ func (ec *executionContext) _LogicStepConfig_type(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
+		return obj.CreatedAt, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -886,26 +688,26 @@ func (ec *executionContext) _LogicStepConfig_type(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_LogicStepConfig_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Flow_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "LogicStepConfig",
+		Object:     "Flow",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createFlow(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createFlow(ctx, field)
+func (ec *executionContext) _Flow_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.Flow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Flow_updatedAt(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -918,7 +720,51 @@ func (ec *executionContext) _Mutation_createFlow(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateFlow(rctx, fc.Args["input"].(model.NewFlow))
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Flow_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Flow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_upsertFlow(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_upsertFlow(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpsertFlow(rctx, fc.Args["input"].(model.UpsertFlow))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -935,7 +781,7 @@ func (ec *executionContext) _Mutation_createFlow(ctx context.Context, field grap
 	return ec.marshalNFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐFlow(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createFlow(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_upsertFlow(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -951,6 +797,10 @@ func (ec *executionContext) fieldContext_Mutation_createFlow(ctx context.Context
 				return ec.fieldContext_Flow_description(ctx, field)
 			case "steps":
 				return ec.fieldContext_Flow_steps(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Flow_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Flow_updatedAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Flow", field.Name)
 		},
@@ -962,15 +812,15 @@ func (ec *executionContext) fieldContext_Mutation_createFlow(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createFlow_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_upsertFlow_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_flows(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_flows(ctx, field)
+func (ec *executionContext) _Mutation_deleteFlow(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteFlow(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -983,7 +833,62 @@ func (ec *executionContext) _Query_flows(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Flows(rctx)
+		return ec.resolvers.Mutation().DeleteFlow(rctx, fc.Args["id"].(uuid.UUID))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uuid.UUID)
+	fc.Result = res
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteFlow(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type UUID does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteFlow_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_listFlows(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_listFlows(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ListFlows(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1000,7 +905,7 @@ func (ec *executionContext) _Query_flows(ctx context.Context, field graphql.Coll
 	return ec.marshalNFlow2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐFlowᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_flows(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_listFlows(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -1016,6 +921,10 @@ func (ec *executionContext) fieldContext_Query_flows(_ context.Context, field gr
 				return ec.fieldContext_Flow_description(ctx, field)
 			case "steps":
 				return ec.fieldContext_Flow_steps(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Flow_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Flow_updatedAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Flow", field.Name)
 		},
@@ -1037,7 +946,7 @@ func (ec *executionContext) _Query_getFlow(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetFlow(rctx, fc.Args["id"].(string))
+		return ec.resolvers.Query().GetFlow(rctx, fc.Args["id"].(uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1067,6 +976,10 @@ func (ec *executionContext) fieldContext_Query_getFlow(ctx context.Context, fiel
 				return ec.fieldContext_Flow_description(ctx, field)
 			case "steps":
 				return ec.fieldContext_Flow_steps(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Flow_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Flow_updatedAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Flow", field.Name)
 		},
@@ -1214,138 +1127,6 @@ func (ec *executionContext) fieldContext_Query___schema(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _RequestHeader_key(ctx context.Context, field graphql.CollectedField, obj *model.RequestHeader) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_RequestHeader_key(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Key, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_RequestHeader_key(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "RequestHeader",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _RequestHeader_value(ctx context.Context, field graphql.CollectedField, obj *model.RequestHeader) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_RequestHeader_value(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Value, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_RequestHeader_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "RequestHeader",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Step_id(ctx context.Context, field graphql.CollectedField, obj *model.Step) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Step_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Step_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Step",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Step_type(ctx context.Context, field graphql.CollectedField, obj *model.Step) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Step_type(ctx, field)
 	if err != nil {
@@ -1452,14 +1233,11 @@ func (ec *executionContext) _Step_config(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(model.StepConfig)
+	res := resTmp.(map[string]any)
 	fc.Result = res
-	return ec.marshalNStepConfig2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStepConfig(ctx, field.Selections, res)
+	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Step_config(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1469,7 +1247,7 @@ func (ec *executionContext) fieldContext_Step_config(_ context.Context, field gr
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type StepConfig does not have child fields")
+			return nil, errors.New("field of type Map does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3248,20 +3026,27 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(_ context.Context
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputNewFlow(ctx context.Context, obj any) (model.NewFlow, error) {
-	var it model.NewFlow
+func (ec *executionContext) unmarshalInputUpsertFlow(ctx context.Context, obj any) (model.UpsertFlow, error) {
+	var it model.UpsertFlow
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description"}
+	fieldsInOrder := [...]string{"id", "name", "description", "steps"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
 		case "name":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -3276,6 +3061,54 @@ func (ec *executionContext) unmarshalInputNewFlow(ctx context.Context, obj any) 
 				return it, err
 			}
 			it.Description = data
+		case "steps":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("steps"))
+			data, err := ec.unmarshalNUpsertStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐUpsertStepᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Steps = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpsertStep(ctx context.Context, obj any) (model.UpsertStep, error) {
+	var it model.UpsertStep
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"type", "description", "config"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalNStepType2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStepType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "config":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("config"))
+			data, err := ec.unmarshalOMap2map(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Config = data
 		}
 	}
 
@@ -3286,83 +3119,9 @@ func (ec *executionContext) unmarshalInputNewFlow(ctx context.Context, obj any) 
 
 // region    ************************** interface.gotpl ***************************
 
-func (ec *executionContext) _StepConfig(ctx context.Context, sel ast.SelectionSet, obj model.StepConfig) graphql.Marshaler {
-	switch obj := (obj).(type) {
-	case nil:
-		return graphql.Null
-	case model.LogicStepConfig:
-		return ec._LogicStepConfig(ctx, sel, &obj)
-	case *model.LogicStepConfig:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._LogicStepConfig(ctx, sel, obj)
-	case model.APIStepConfig:
-		return ec._ApiStepConfig(ctx, sel, &obj)
-	case *model.APIStepConfig:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._ApiStepConfig(ctx, sel, obj)
-	default:
-		panic(fmt.Errorf("unexpected type %T", obj))
-	}
-}
-
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
-
-var apiStepConfigImplementors = []string{"ApiStepConfig", "StepConfig"}
-
-func (ec *executionContext) _ApiStepConfig(ctx context.Context, sel ast.SelectionSet, obj *model.APIStepConfig) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, apiStepConfigImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ApiStepConfig")
-		case "url":
-			out.Values[i] = ec._ApiStepConfig_url(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "method":
-			out.Values[i] = ec._ApiStepConfig_method(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "headers":
-			out.Values[i] = ec._ApiStepConfig_headers(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "body":
-			out.Values[i] = ec._ApiStepConfig_body(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
 
 var flowImplementors = []string{"Flow"}
 
@@ -3392,42 +3151,13 @@ func (ec *executionContext) _Flow(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var logicStepConfigImplementors = []string{"LogicStepConfig", "StepConfig"}
-
-func (ec *executionContext) _LogicStepConfig(ctx context.Context, sel ast.SelectionSet, obj *model.LogicStepConfig) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, logicStepConfigImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("LogicStepConfig")
-		case "type":
-			out.Values[i] = ec._LogicStepConfig_type(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._Flow_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._Flow_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -3473,9 +3203,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "createFlow":
+		case "upsertFlow":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createFlow(ctx, field)
+				return ec._Mutation_upsertFlow(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteFlow":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteFlow(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -3522,7 +3259,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "flows":
+		case "listFlows":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -3531,7 +3268,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_flows(ctx, field)
+				res = ec._Query_listFlows(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -3594,50 +3331,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
-var requestHeaderImplementors = []string{"RequestHeader"}
-
-func (ec *executionContext) _RequestHeader(ctx context.Context, sel ast.SelectionSet, obj *model.RequestHeader) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, requestHeaderImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("RequestHeader")
-		case "key":
-			out.Values[i] = ec._RequestHeader_key(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "value":
-			out.Values[i] = ec._RequestHeader_value(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var stepImplementors = []string{"Step"}
 
 func (ec *executionContext) _Step(ctx context.Context, sel ast.SelectionSet, obj *model.Step) graphql.Marshaler {
@@ -3649,11 +3342,6 @@ func (ec *executionContext) _Step(ctx context.Context, sel ast.SelectionSet, obj
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Step")
-		case "id":
-			out.Values[i] = ec._Step_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "type":
 			out.Values[i] = ec._Step_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3663,9 +3351,6 @@ func (ec *executionContext) _Step(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._Step_description(ctx, field, obj)
 		case "config":
 			out.Values[i] = ec._Step_config(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4088,80 +3773,6 @@ func (ec *executionContext) marshalNFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑrule
 	return ec._Flow(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v any) (string, error) {
-	res, err := graphql.UnmarshalID(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalID(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) unmarshalNNewFlow2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐNewFlow(ctx context.Context, v any) (model.NewFlow, error) {
-	res, err := ec.unmarshalInputNewFlow(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNRequestHeader2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐRequestHeaderᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RequestHeader) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNRequestHeader2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐRequestHeader(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNRequestHeader2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐRequestHeader(ctx context.Context, sel ast.SelectionSet, v *model.RequestHeader) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._RequestHeader(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStepᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Step) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -4216,16 +3827,6 @@ func (ec *executionContext) marshalNStep2ᚖgithubᚗcomᚋferndotᚋdemoᚑrule
 	return ec._Step(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNStepConfig2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStepConfig(ctx context.Context, sel ast.SelectionSet, v model.StepConfig) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._StepConfig(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNStepType2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStepType(ctx context.Context, v any) (model.StepType, error) {
 	var res model.StepType
 	err := res.UnmarshalGQL(v)
@@ -4249,6 +3850,63 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := graphql.MarshalTime(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v any) (uuid.UUID, error) {
+	res, err := graphql.UnmarshalUUID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
+	res := graphql.MarshalUUID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNUpsertFlow2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐUpsertFlow(ctx context.Context, v any) (model.UpsertFlow, error) {
+	res, err := ec.unmarshalInputUpsertFlow(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpsertStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐUpsertStepᚄ(ctx context.Context, v any) ([]*model.UpsertStep, error) {
+	var vSlice []any
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.UpsertStep, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNUpsertStep2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐUpsertStep(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNUpsertStep2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐUpsertStep(ctx context.Context, v any) (*model.UpsertStep, error) {
+	res, err := ec.unmarshalInputUpsertStep(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -4537,6 +4195,22 @@ func (ec *executionContext) marshalOFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑrule
 	return ec._Flow(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v any) (map[string]any, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalMap(v)
+	return res
+}
+
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v any) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -4550,6 +4224,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v any) (*uuid.UUID, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalUUID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalUUID(*v)
 	return res
 }
 

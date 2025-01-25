@@ -6,72 +6,60 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
+
+	"github.com/google/uuid"
 )
 
-type StepConfig interface {
-	IsStepConfig()
-}
-
-type APIStepConfig struct {
-	URL     string           `json:"url"`
-	Method  string           `json:"method"`
-	Headers []*RequestHeader `json:"headers"`
-	Body    *string          `json:"body,omitempty"`
-}
-
-func (APIStepConfig) IsStepConfig() {}
-
 type Flow struct {
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
-	Description *string `json:"description,omitempty"`
-	Steps       []*Step `json:"steps"`
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description *string   `json:"description,omitempty"`
+	Steps       []*Step   `json:"steps"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
-
-type LogicStepConfig struct {
-	Type string `json:"type"`
-}
-
-func (LogicStepConfig) IsStepConfig() {}
 
 type Mutation struct {
-}
-
-type NewFlow struct {
-	Name        string  `json:"name"`
-	Description *string `json:"description,omitempty"`
 }
 
 type Query struct {
 }
 
-type RequestHeader struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+type Step struct {
+	Type        StepType       `json:"type"`
+	Description *string        `json:"description,omitempty"`
+	Config      map[string]any `json:"config,omitempty"`
 }
 
-type Step struct {
-	ID          string     `json:"id"`
-	Type        StepType   `json:"type"`
-	Description *string    `json:"description,omitempty"`
-	Config      StepConfig `json:"config"`
+type UpsertFlow struct {
+	ID          *uuid.UUID    `json:"id,omitempty"`
+	Name        string        `json:"name"`
+	Description *string       `json:"description,omitempty"`
+	Steps       []*UpsertStep `json:"steps"`
+}
+
+type UpsertStep struct {
+	Type        StepType       `json:"type"`
+	Description *string        `json:"description,omitempty"`
+	Config      map[string]any `json:"config,omitempty"`
 }
 
 type StepType string
 
 const (
-	StepTypeLogic StepType = "LOGIC"
-	StepTypeAPI   StepType = "API"
+	StepTypeIntegrationAPI    StepType = "INTEGRATION__API"
+	StepTypeNotificationEmail StepType = "NOTIFICATION__EMAIL"
 )
 
 var AllStepType = []StepType{
-	StepTypeLogic,
-	StepTypeAPI,
+	StepTypeIntegrationAPI,
+	StepTypeNotificationEmail,
 }
 
 func (e StepType) IsValid() bool {
 	switch e {
-	case StepTypeLogic, StepTypeAPI:
+	case StepTypeIntegrationAPI, StepTypeNotificationEmail:
 		return true
 	}
 	return false

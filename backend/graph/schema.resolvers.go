@@ -7,23 +7,79 @@ package graph
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/ferndot/demo-rule-engine/graph/model"
+	"github.com/google/uuid"
 )
 
-// CreateFlow is the resolver for the createFlow field.
-func (r *mutationResolver) CreateFlow(ctx context.Context, input model.NewFlow) (*model.Flow, error) {
-	panic(fmt.Errorf("not implemented: CreateFlow - createFlow"))
+// UpsertFlow is the resolver for the upsertFlow field.
+func (r *mutationResolver) UpsertFlow(ctx context.Context, input model.UpsertFlow) (*model.Flow, error) {
+	// Initialize the flow store if it doesn't exist
+	if len(r.Resolver.FlowStore) == 0 {
+		r.Resolver.FlowStore = make(map[uuid.UUID]model.Flow)
+	}
+
+	// Retrieve the flow
+	var flow model.Flow
+	if input.ID != nil {
+		// Get the flow if it exists
+		existingFlow, ok := r.Resolver.FlowStore[*input.ID]
+		if !ok {
+			return nil, fmt.Errorf("flow not found")
+		}
+		flow = existingFlow
+	} else {
+		// Create a new flow
+		flow = model.Flow{
+			ID:        uuid.New(),
+			CreatedAt: time.Now(),
+		}
+	}
+
+	// Update flow fields
+	flow.Name = input.Name
+	flow.Description = input.Description
+	flow.UpdatedAt = time.Now()
+
+	// Update steps
+	flow.Steps = make([]*model.Step, 0)
+	for _, step := range input.Steps {
+		flow.Steps = append(flow.Steps, &model.Step{
+			Type:        step.Type,
+			Description: step.Description,
+			Config:      step.Config,
+		})
+	}
+
+	// Save the flow
+	r.Resolver.FlowStore[flow.ID] = flow
+
+	return &flow, nil
 }
 
-// Flows is the resolver for the flows field.
-func (r *queryResolver) Flows(ctx context.Context) ([]*model.Flow, error) {
-	panic(fmt.Errorf("not implemented: Flows - flows"))
+// DeleteFlow is the resolver for the deleteFlow field.
+func (r *mutationResolver) DeleteFlow(ctx context.Context, id uuid.UUID) (uuid.UUID, error) {
+	// TODO: Implement flow deletion
+	panic(fmt.Errorf("not implemented: DeleteFlow - deleteFlow"))
+}
+
+// ListFlows is the resolver for the listFlows field.
+func (r *queryResolver) ListFlows(ctx context.Context) ([]*model.Flow, error) {
+	var flows []*model.Flow
+	for _, flow := range r.Resolver.FlowStore {
+		flows = append(flows, &flow)
+	}
+	return flows, nil
 }
 
 // GetFlow is the resolver for the getFlow field.
-func (r *queryResolver) GetFlow(ctx context.Context, id string) (*model.Flow, error) {
-	panic(fmt.Errorf("not implemented: GetFlow - getFlow"))
+func (r *queryResolver) GetFlow(ctx context.Context, id uuid.UUID) (*model.Flow, error) {
+	flow, ok := r.Resolver.FlowStore[id]
+	if !ok {
+		return nil, fmt.Errorf("flow not found")
+	}
+	return &flow, nil
 }
 
 // Mutation returns MutationResolver implementation.
