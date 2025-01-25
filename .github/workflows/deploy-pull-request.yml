@@ -1,0 +1,47 @@
+name: Deploy on PR
+"on": pull_request
+jobs:
+  deploy_backend:
+    if: "${{ github.event.pull_request.head.repo.full_name == github.repository }}"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          create_credentials_file: true
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT_EMAIL }}
+      - id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: demo-rule-engine-backend
+          region: us-west1
+          source: ./backend
+
+  deploy_frontend:
+    if: "${{ github.event.pull_request.head.repo.full_name == github.repository }}"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: true
+          package_json_file: ./frontend/package.json
+      - run: pnpm run build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_FIR_RULE_ENGINE }}"
+          projectId: fir-rule-engine
+          entryPoint: ./frontend
