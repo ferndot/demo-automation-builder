@@ -49,19 +49,19 @@
 </template>
 
 <script lang="ts" setup>
+import type { Step } from '@/gql/graphql';
 import { VueDraggable } from 'vue-draggable-plus';
-import type { ApiStepConfig, EmailStepConfig, StepType } from '@/stores/flow';
 
 const query = ref(null);
 
 // In an ideal implementation, these step types would be fetched from an API endpoint
-const steps = ref<StepType[]>([
+const steps = ref([
   {
     title: 'API Request',
-    type: 'api',
-    description: 'Makes an HTTP request to an API endpoint.',
+    type: 'INTEGRATION__API',
+    description: 'Makes a request to an API endpoint.',
     icon: 'mdi-api',
-    baseConfig: <ApiStepConfig>{
+    baseConfig: {
       url: '',
       method: 'GET',
       headers: {},
@@ -70,10 +70,10 @@ const steps = ref<StepType[]>([
   },
   {
     title: 'Email',
-    type: 'notifications.email',
+    type: 'NOTIFICATION__EMAIL',
     description: 'Sends an email notification.',
     icon: 'mdi-email',
-    baseConfig: <EmailStepConfig>{
+    baseConfig: {
       recipient: '',
       subject: '',
       body: '',
@@ -88,13 +88,12 @@ const filteredSteps = computed(() => {
   );
 });
 
-const createStep = (element: StepType) => {
+const createStep = (element: { type: string, baseConfig: object }) => {
   return {
-    id: null,
     type: element.type,
     description: '',
     config: element.baseConfig,
-  };
+  } as Step;
 };
 </script>
 

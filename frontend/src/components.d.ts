@@ -11,6 +11,7 @@ declare module 'vue' {
     AppFooter: typeof import('./components/AppFooter.vue')['default']
     EmailStep: typeof import('./components/steps/EmailStep.vue')['default']
     FlowCard: typeof import('./components/FlowCard.vue')['default']
+    FlowEditor: typeof import('./components/FlowEditor.vue')['default']
     LogicStep: typeof import('./components/steps/LogicStep.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

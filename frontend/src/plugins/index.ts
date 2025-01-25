@@ -4,7 +4,10 @@
  * Automatically included in `./src/main.ts`
  */
 
+import { DefaultApolloClient } from '@vue/apollo-composable'
+
 // Plugins
+import apolloClient from './apollo'
 import vuetify from './vuetify'
 import pinia from '@/stores'
 import router from '@/router'
@@ -17,4 +20,5 @@ export function registerPlugins (app: App) {
     .use(vuetify)
     .use(router)
     .use(pinia)
+    .provide(DefaultApolloClient, apolloClient)
 }

@@ -6,7 +6,7 @@
     <template #actions>
       <!-- Example of custom action offering preview functionality -->
       <v-btn
-        :disabled="!formValid"
+        disabled
         prepend-icon="mdi-eye"
         text="Preview"
         variant="tonal"
@@ -19,13 +19,13 @@
       @change="updateStep"
     >
       <v-text-field
-        v-model="step.description"
+        v-model="editedStep.description"
         label="Description"
         variant="solo-filled"
       />
 
       <v-text-field
-        v-model="config.recipient"
+        v-model="editedStep.config.recipient"
         :rules="formRules.recipient"
         label="Recipient Email"
         variant="solo-filled"
@@ -34,7 +34,7 @@
       />
 
       <v-text-field
-        v-model="config.subject"
+        v-model="editedStep.config.subject"
         :rules="formRules.subject"
         label="Subject"
         variant="solo-filled"
@@ -42,7 +42,7 @@
       />
 
       <v-textarea
-        v-model="config.body"
+        v-model="editedStep.config.body"
         :rules="formRules.body"
         label="Body"
         variant="solo-filled"
@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { EmailStepConfig, Step } from '@/stores/flow';
+import type { Step, UpsertStep } from '@/gql/graphql';
 import type { VForm } from 'vuetify/components';
 
 const props = defineProps<{
@@ -61,8 +61,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits(['update', 'delete']);
 
-const step = ref(props.step);
-const config = step.value.config as EmailStepConfig;
+const editedStep = ref({...props.step as UpsertStep});
 
 const form = useTemplateRef<VForm>('form');
 const formRules = {
@@ -84,6 +83,6 @@ const formValid = computed(() => form.value?.isValid);
 
 const updateStep = async () => {
   if (!formValid) return;
-  emit('update', step.value);
+  emit('update', editedStep.value);
 }
 </script>

@@ -8,3 +8,11 @@
 // @use 'vuetify/settings' with (
 //   $color-pack: false
 // );
+
+.v-toolbar__append {
+  padding: 12px;
+
+  & > * {
+    margin-left: 0.5rem;
+  }
+}
