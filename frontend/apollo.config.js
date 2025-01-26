@@ -2,7 +2,7 @@
 module.exports = {
   client: {
     service: {
-      name: 'demo-rule-engine',
+      name: 'demo-automation-builder',
       url: 'http://localhost:8080/graphql',
     },
     // Files processed by the extension

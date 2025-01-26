@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-app-bar>
-      <v-app-bar-title>Demo: Rule Engine</v-app-bar-title>
+      <v-app-bar-title>Demo: Automation Builder</v-app-bar-title>
       <template #append>
         <v-btn
           prepend-icon="mdi-plus"

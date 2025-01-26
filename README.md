@@ -1,4 +1,18 @@
-# Demo: Rule Engine
+# Demo: Automation Builder
+
+Live demo: [App](https://automationbuilder.ferns.land/) | [API](https://api.automationbuilder.ferns.land/)
+
+This application is a demonstration of an automation builder interface. Users are able to create and manage "flows": sequences of configurable steps, such as making an API request or sending an email. This enables users to simplify common business tasks and processes.
+
+## Goals
+
+My goals for this project are to:
+
+- Showcase my strengths:
+  - User experience focus
+  - Elegant architecture, clean code
+  - Forward thinking: maintainability and extensibility
+- Challenge myself with a new technology: Go
 
 ## Running the project
 
@@ -19,16 +33,6 @@
 
    - [Application](http://localhost:3000/)
    - [API playground](http://localhost:8080/)
-
-## Goals
-
-My goals for this project are to:
-
-- Showcase my strengths:
-  - User experience focus
-  - Elegant architecture, clean code
-  - Forward thinking: maintainability and extensibility
-- Challenge myself with a new technology: Go
 
 ## Architecture
 
@@ -80,11 +84,13 @@ Other notable tooling:
 
 ## Potential improvements
 
-1. Implement backend logic to actually run steps
-2. Connect backend to a relational database
-3. Support multiple content types for API request steps
-4. Implement a better editing component for JSON API requests
-5. Add mobile support to the flow editor
-6. Add a confirmation dialog for the step deletion button
-7. Implement flow deletion
-8. Bug: Save button is enabled before a valid step is added
+1. Implement UI for conditional steps
+2. Implement backend logic to actually run steps
+3. Connect backend to a relational database
+4. Support multiple content types for API request steps
+5. Implement a better editing component for JSON API requests
+6. Add mobile support to the flow editor
+7. Add a confirmation dialog for the step deletion button
+8. Implement flow deletion
+9. Bug: Save button is enabled before a valid step is added
+10. Add user authenticationn

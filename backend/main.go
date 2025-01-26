@@ -9,7 +9,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/ferndot/demo-rule-engine/graph"
+	"github.com/ferndot/demo-automation-builder/graph"
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
@@ -64,7 +64,7 @@ func main() {
 		Cache: lru.New[string](100),
 	})
 
-	router.Handle("/", playground.Handler("Rule Engine - API Playground", "/graphql"))
+	router.Handle("/", playground.Handler("Automation Builder - API Playground", "/graphql"))
 	router.Handle("/graphql", srv)
 
 	err := http.ListenAndServe(":"+defaultPort, router)

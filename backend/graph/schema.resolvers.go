@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ferndot/demo-rule-engine/graph/model"
+	"github.com/ferndot/demo-automation-builder/graph/model"
 	"github.com/google/uuid"
 )
 

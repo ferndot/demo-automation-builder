@@ -15,7 +15,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/ferndot/demo-rule-engine/graph/model"
+	"github.com/ferndot/demo-automation-builder/graph/model"
 	"github.com/google/uuid"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -374,7 +374,7 @@ func (ec *executionContext) field_Mutation_upsertFlow_argsInput(
 ) (model.UpsertFlow, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNUpsertFlow2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐUpsertFlow(ctx, tmp)
+		return ec.unmarshalNUpsertFlow2githubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐUpsertFlow(ctx, tmp)
 	}
 
 	var zeroVal model.UpsertFlow
@@ -638,7 +638,7 @@ func (ec *executionContext) _Flow_steps(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.([]*model.Step)
 	fc.Result = res
-	return ec.marshalNStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStepᚄ(ctx, field.Selections, res)
+	return ec.marshalNStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐStepᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Flow_steps(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -778,7 +778,7 @@ func (ec *executionContext) _Mutation_upsertFlow(ctx context.Context, field grap
 	}
 	res := resTmp.(*model.Flow)
 	fc.Result = res
-	return ec.marshalNFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐFlow(ctx, field.Selections, res)
+	return ec.marshalNFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐFlow(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_upsertFlow(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -902,7 +902,7 @@ func (ec *executionContext) _Query_listFlows(ctx context.Context, field graphql.
 	}
 	res := resTmp.([]*model.Flow)
 	fc.Result = res
-	return ec.marshalNFlow2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐFlowᚄ(ctx, field.Selections, res)
+	return ec.marshalNFlow2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐFlowᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_listFlows(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -957,7 +957,7 @@ func (ec *executionContext) _Query_getFlow(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(*model.Flow)
 	fc.Result = res
-	return ec.marshalOFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐFlow(ctx, field.Selections, res)
+	return ec.marshalOFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐFlow(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getFlow(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1155,7 +1155,7 @@ func (ec *executionContext) _Step_type(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.(model.StepType)
 	fc.Result = res
-	return ec.marshalNStepType2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStepType(ctx, field.Selections, res)
+	return ec.marshalNStepType2githubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐStepType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Step_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3063,7 +3063,7 @@ func (ec *executionContext) unmarshalInputUpsertFlow(ctx context.Context, obj an
 			it.Description = data
 		case "steps":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("steps"))
-			data, err := ec.unmarshalNUpsertStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐUpsertStepᚄ(ctx, v)
+			data, err := ec.unmarshalNUpsertStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐUpsertStepᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3090,7 +3090,7 @@ func (ec *executionContext) unmarshalInputUpsertStep(ctx context.Context, obj an
 		switch k {
 		case "type":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			data, err := ec.unmarshalNStepType2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStepType(ctx, v)
+			data, err := ec.unmarshalNStepType2githubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐStepType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3715,11 +3715,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNFlow2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐFlow(ctx context.Context, sel ast.SelectionSet, v model.Flow) graphql.Marshaler {
+func (ec *executionContext) marshalNFlow2githubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐFlow(ctx context.Context, sel ast.SelectionSet, v model.Flow) graphql.Marshaler {
 	return ec._Flow(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNFlow2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐFlowᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Flow) graphql.Marshaler {
+func (ec *executionContext) marshalNFlow2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐFlowᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Flow) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3743,7 +3743,7 @@ func (ec *executionContext) marshalNFlow2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐFlow(ctx, sel, v[i])
+			ret[i] = ec.marshalNFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐFlow(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3763,7 +3763,7 @@ func (ec *executionContext) marshalNFlow2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑr
 	return ret
 }
 
-func (ec *executionContext) marshalNFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐFlow(ctx context.Context, sel ast.SelectionSet, v *model.Flow) graphql.Marshaler {
+func (ec *executionContext) marshalNFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐFlow(ctx context.Context, sel ast.SelectionSet, v *model.Flow) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -3773,7 +3773,7 @@ func (ec *executionContext) marshalNFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑrule
 	return ec._Flow(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStepᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Step) graphql.Marshaler {
+func (ec *executionContext) marshalNStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐStepᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Step) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3797,7 +3797,7 @@ func (ec *executionContext) marshalNStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNStep2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStep(ctx, sel, v[i])
+			ret[i] = ec.marshalNStep2ᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐStep(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3817,7 +3817,7 @@ func (ec *executionContext) marshalNStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑr
 	return ret
 }
 
-func (ec *executionContext) marshalNStep2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStep(ctx context.Context, sel ast.SelectionSet, v *model.Step) graphql.Marshaler {
+func (ec *executionContext) marshalNStep2ᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐStep(ctx context.Context, sel ast.SelectionSet, v *model.Step) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -3827,13 +3827,13 @@ func (ec *executionContext) marshalNStep2ᚖgithubᚗcomᚋferndotᚋdemoᚑrule
 	return ec._Step(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNStepType2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStepType(ctx context.Context, v any) (model.StepType, error) {
+func (ec *executionContext) unmarshalNStepType2githubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐStepType(ctx context.Context, v any) (model.StepType, error) {
 	var res model.StepType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNStepType2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐStepType(ctx context.Context, sel ast.SelectionSet, v model.StepType) graphql.Marshaler {
+func (ec *executionContext) marshalNStepType2githubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐStepType(ctx context.Context, sel ast.SelectionSet, v model.StepType) graphql.Marshaler {
 	return v
 }
 
@@ -3882,12 +3882,12 @@ func (ec *executionContext) marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx
 	return res
 }
 
-func (ec *executionContext) unmarshalNUpsertFlow2githubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐUpsertFlow(ctx context.Context, v any) (model.UpsertFlow, error) {
+func (ec *executionContext) unmarshalNUpsertFlow2githubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐUpsertFlow(ctx context.Context, v any) (model.UpsertFlow, error) {
 	res, err := ec.unmarshalInputUpsertFlow(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpsertStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐUpsertStepᚄ(ctx context.Context, v any) ([]*model.UpsertStep, error) {
+func (ec *executionContext) unmarshalNUpsertStep2ᚕᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐUpsertStepᚄ(ctx context.Context, v any) ([]*model.UpsertStep, error) {
 	var vSlice []any
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
@@ -3896,7 +3896,7 @@ func (ec *executionContext) unmarshalNUpsertStep2ᚕᚖgithubᚗcomᚋferndotᚋ
 	res := make([]*model.UpsertStep, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNUpsertStep2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐUpsertStep(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNUpsertStep2ᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐUpsertStep(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -3904,7 +3904,7 @@ func (ec *executionContext) unmarshalNUpsertStep2ᚕᚖgithubᚗcomᚋferndotᚋ
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNUpsertStep2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐUpsertStep(ctx context.Context, v any) (*model.UpsertStep, error) {
+func (ec *executionContext) unmarshalNUpsertStep2ᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐUpsertStep(ctx context.Context, v any) (*model.UpsertStep, error) {
 	res, err := ec.unmarshalInputUpsertStep(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -4188,7 +4188,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑruleᚑengineᚋgraphᚋmodelᚐFlow(ctx context.Context, sel ast.SelectionSet, v *model.Flow) graphql.Marshaler {
+func (ec *executionContext) marshalOFlow2ᚖgithubᚗcomᚋferndotᚋdemoᚑautomationᚑbuilderᚋgraphᚋmodelᚐFlow(ctx context.Context, sel ast.SelectionSet, v *model.Flow) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
