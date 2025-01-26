@@ -98,4 +98,5 @@ Other notable tooling:
 7. Add a confirmation dialog for the step deletion button
 8. Implement flow deletion
 9. Bug: Save button is enabled before a valid step is added
-10. Add user authenticationn
+10. Add user authentication
+11. Add unit testing
