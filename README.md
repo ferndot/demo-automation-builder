@@ -4,6 +4,11 @@ Live demo: [App](https://automationbuilder.ferns.land/) | [API](https://api.auto
 
 This application is a demonstration of an automation builder interface. Users are able to create and manage "flows": sequences of configurable steps, such as making an API request or sending an email. This enables users to simplify common business tasks and processes.
 
+Example automation:
+
+![Automation Builder Diagram](https://github.com/user-attachments/assets/4d38f21c-d19f-413a-aa4c-095d61b9a7f2)
+
+
 ## Goals
 
 My goals for this project are to:
